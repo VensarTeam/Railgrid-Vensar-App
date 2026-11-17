@@ -1,97 +1,54 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# RailGrid
 
-# Getting Started
+RailGrid is a bare React Native 0.88 application foundation for railway project and infrastructure operations. It uses TypeScript, React Navigation, Zustand, TanStack Query, Axios, React Hook Form, Zod, Reanimated, Gesture Handler, Lucide icons, locally bundled Inter, AsyncStorage, and Keychain. The Android and iOS native projects are checked in and use the New Architecture.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Requirements
 
-## Step 1: Start Metro
+- Node.js 22.11 or newer
+- Xcode and CocoaPods for iOS
+- Android Studio, Android SDK, and JDK 17 or newer for Android
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Setup
 
 ```sh
-# Using npm
+npm install
+cp .env.example .env
+cd ios && bundle install && bundle exec pod install && cd ..
+```
+
+Edit `API_BASE_URL` in `.env` to point to your API. The default falls back to `https://api.example.com`.
+
+## Run
+
+```sh
 npm start
-
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
 npm run ios
-
-# OR using Yarn
-yarn ios
+npm run android
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Release builds can be launched with `npm run ios:release` and `npm run android:release`. Configure your own distribution signing credentials before publishing a release build. Android debug is ready to use with the template debug key.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Quality checks
 
-## Step 3: Modify your app
+```sh
+npm run typecheck
+npm run lint
+npx react-native doctor
+```
 
-Now that you have successfully run the app, let's make changes!
+## App foundation
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+- The login preview accepts any valid email and password of at least eight characters; it saves a demo session token in Keychain. The demo screens are labeled as sample data.
+- Theme preference supports system, light, and dark modes and persists in AsyncStorage.
+- API and Query clients are centralized in `src/services/api.ts` and `App.tsx`; feature screens currently use local demo data.
+- Local Inter font files and the SIL Open Font License are in `assets/fonts/`.
+- Replace the placeholder API URL, demo authentication flow, and Android release signing configuration before connecting a production service or distributing the app.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+## Native identifiers
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+- Android: `com.railgrid`
+- iOS: `com.railgrid`
 
-## Congratulations! :tada:
+These identifiers are placeholders and can be changed in the native project settings when the organization’s production identifiers are known.
 
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+The React Native 0.88 CLI template requested Android API 37, but that platform package was not available from the configured SDK repository during setup. The project is set to the installed API 36 platform and Build Tools 36.0.0; update `android/build.gradle` when API 37 is available in your SDK manager.

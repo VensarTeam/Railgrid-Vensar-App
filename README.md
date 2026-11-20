@@ -16,7 +16,14 @@ cp .env.example .env
 cd ios && bundle install && bundle exec pod install && cd ..
 ```
 
-Edit `API_BASE_URL` in `.env` to point to your API. The default falls back to `https://api.example.com`.
+Set `API_BASE_URL` in `.env` to the development API base URL:
+
+```sh
+API_BASE_URL=https://railgrid.vensar.in/api/v1
+AUTH_LOGIN_CHANNEL=web
+```
+
+The app appends `/v1` when the URL does not include it. Restart Metro after changing `.env`.
 
 ## Run
 
@@ -38,11 +45,14 @@ npx react-native doctor
 
 ## App foundation
 
-- The login preview accepts any valid email and password of at least eight characters; it saves a demo session token in Keychain. The demo screens are labeled as sample data.
+- A photo-led welcome screen appears on the first launch. Its completion is stored in AsyncStorage, so later launches and sign-outs open sign-in directly.
+- Sign-in, email verification, and password recovery share a responsive photo fade layout. The welcome and auth photos and RailGrid logo are in `assets/images/`.
+- Sign in uses mobile number and password, followed by an email OTP. The account needs a registered email. The current dev API requires `AUTH_LOGIN_CHANNEL=web`, which also requires the account's web login permission. After the backend change is deployed, set `AUTH_LOGIN_CHANNEL=mobile-otp` for field users. Access and refresh tokens are stored in Keychain; refresh rotation and sign out are handled by the API client.
+- Dashboard and Projects read the authenticated `/dashboard/summary` endpoint. Dashboard shows portfolio track progress in a photo cover with a translucent summary panel. Civil, S&T, and Electrical metrics appear in a swipeable module carousel that advances every five seconds and has a play/pause control. It also shows module averages, recent activity, and each project. Tap a project's info icon on either page for detailed progress and quantities in a bottom sheet. Bottom navigation contains Dashboard, Projects, and Profile; work forms will be added in later pages.
 - Theme preference supports system, light, and dark modes and persists in AsyncStorage.
-- API and Query clients are centralized in `src/services/api.ts` and `App.tsx`; feature screens currently use local demo data.
+- API and Query clients are centralized in `src/services/api.ts` and `App.tsx`; dashboard fetching is in `src/services/dashboardApi.ts` and `src/hooks/useDashboardQuery.ts`.
 - Local Inter font files and the SIL Open Font License are in `assets/fonts/`.
-- Replace the placeholder API URL, demo authentication flow, and Android release signing configuration before connecting a production service or distributing the app.
+- Replace the placeholder API URL and Android release signing configuration before distributing the app.
 
 ## Native identifiers
 

@@ -9,6 +9,7 @@ import { navigationThemes } from './src/theme';
 import { AppLoader } from './src/components/AppLoader';
 import { useThemeStore } from './src/store/themeStore';
 import { useAuthStore } from './src/store/authStore';
+import { useOnboardingStore } from './src/store/onboardingStore';
 import { useEffect } from 'react';
 
 const queryClient = new QueryClient({
@@ -24,10 +25,12 @@ export default function App() {
   const hydrate = useThemeStore((state) => state.hydrate);
   const authHydrated = useAuthStore((state) => state.hydrated);
   const hydrateAuth = useAuthStore((state) => state.restore);
+  const onboardingHydrated = useOnboardingStore((state) => state.hydrated);
+  const hydrateOnboarding = useOnboardingStore((state) => state.hydrate);
   useEffect(() => {
-    Promise.all([hydrate(), hydrateAuth()]).catch(() => undefined);
-  }, [hydrate, hydrateAuth]);
-  if (!hydrated || !authHydrated)
+    Promise.all([hydrate(), hydrateAuth(), hydrateOnboarding()]).catch(() => undefined);
+  }, [hydrate, hydrateAuth, hydrateOnboarding]);
+  if (!hydrated || !authHydrated || !onboardingHydrated)
     return (
       <SafeAreaProvider>
         <AppLoader label="Loading RailGrid" />

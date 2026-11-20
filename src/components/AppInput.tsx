@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 import { AppText } from './AppText';
 import { useTheme } from '../hooks/useTheme';
 import { radius, spacing, typography } from '../theme';
-type Props = TextInputProps & { label: string; error?: string };
+type Props = TextInputProps & { label: string; error?: string | undefined };
 export function AppInput({ label, error, style, onFocus, onBlur, ...props }: Props) {
   const t = useTheme();
   const [focused, setFocused] = useState(false);

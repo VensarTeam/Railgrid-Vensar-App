@@ -1,27 +1,56 @@
-import axios, { AxiosError } from 'axios';
-import { API_BASE_URL } from '@env';
+import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { apiBaseUrl, authApi, authErrorMessage, type Session } from './authApi';
+import { clearSession, readSession, writeSession } from './session';
 import { useAuthStore } from '../store/authStore';
+type RetryConfig = InternalAxiosRequestConfig & { _retried?: boolean };
+let refreshPromise: Promise<Session> | null = null;
 export const api = axios.create({
-  baseURL: API_BASE_URL ?? 'https://api.example.com',
+  baseURL: apiBaseUrl,
   timeout: 15_000,
   headers: { Accept: 'application/json' },
 });
 api.interceptors.request.use(async (config) => {
-  const Keychain = await import('react-native-keychain');
-  const credentials = await Keychain.getGenericPassword({ service: 'com.railgrid.auth' });
-  if (credentials) config.headers.Authorization = `Bearer ${credentials.password}`;
+  const session = await readSession();
+  if (session) config.headers.Authorization = `Bearer ${session.accessToken}`;
   return config;
 });
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<{ message?: string }>) => {
-    if (error.response?.status === 401)
-      useAuthStore
-        .getState()
-        .signOut()
-        .catch(() => undefined);
-    const message =
-      error.response?.data?.message ?? error.message ?? 'The request could not be completed.';
-    return Promise.reject(new Error(message));
+  async (error: AxiosError) => {
+    const request = error.config as RetryConfig | undefined;
+    if (error.response?.status === 401 && request?._retried) {
+      await clearSession();
+      useAuthStore.setState({ authenticated: false, user: null });
+    } else if (error.response?.status === 401 && request) {
+      request._retried = true;
+      const session = await readSession();
+      if (session) {
+        try {
+          if (request.headers.Authorization !== `Bearer ${session.accessToken}`) {
+            request.headers.Authorization = `Bearer ${session.accessToken}`;
+            return api(request);
+          }
+          refreshPromise ??= authApi.refresh(session.refreshToken).then(async (next) => {
+            const current = await readSession();
+            if (current?.refreshToken !== session.refreshToken) {
+              throw new Error('Session changed during refresh');
+            }
+            await writeSession(next);
+            useAuthStore.setState({ authenticated: true, user: next.user });
+            return next;
+          }).finally(() => { refreshPromise = null; });
+          const next = await refreshPromise;
+          request.headers.Authorization = `Bearer ${next.accessToken}`;
+          return api(request);
+        } catch (cause) {
+          if (axios.isAxiosError(cause) && cause.response?.status === 401) {
+            await clearSession();
+            useAuthStore.setState({ authenticated: false, user: null });
+          }
+          return Promise.reject(new Error(authErrorMessage(cause)));
+        }
+      }
+    }
+    return Promise.reject(new Error(authErrorMessage(error)));
   },
 );

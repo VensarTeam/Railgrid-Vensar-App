@@ -38,7 +38,7 @@ export function AppButton({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={t.colors.secondary} />
+        <ActivityIndicator color={outline || muted ? t.colors.secondary : t.colors.onPrimary} />
       ) : (
         <AppText
           variant="button"
